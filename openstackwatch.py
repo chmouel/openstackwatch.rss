@@ -33,7 +33,7 @@ def parse_ini(inifile):
     try:
         ret['projects'] = config.get('general', 'json_url')
     except(ConfigParser.NoOptionError):
-        ret['projects'] = JSON_URL
+        ret['json_url'] = JSON_URL
     return ret
 CONFIG = parse_ini("%s/openstackwatch.ini" % curdir)
 
@@ -44,12 +44,12 @@ def debug(msg):
 
 
 def get_javascript():
-    url = urllib.urlretrieve(JSON_URL)
+    url = urllib.urlretrieve(CONFIG['json_url'])
     return open(url[0]).read()
 
 
 def parse_javascript(javascript):
-    for row in javascript.split('\n'):
+    for row in javascript.splitlines():
         try:
             json_row = json.loads(row)
         except(ValueError):
