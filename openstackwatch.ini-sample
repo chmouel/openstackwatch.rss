@@ -1,0 +1,29 @@
+# -*- Mode: conf -*-
+
+[general]
+# only show certain projects (don't forget the openstack/ as start)
+projects = openstack/swift, openstack/cinder
+json_url = https://review.openstack.org/query?q=status:open
+
+# username to your swift cluster
+[swift]
+# username/tenant for swift with 2.0 or just username with 1.0 (i.e:
+# RAX).
+username =
+
+# passowrd or api key
+password =
+
+# container to upload (probably want to be public)
+container =
+
+# auth_url of the cluster, for Rackspace this is :
+#   https://auth.api.rackspacecloud.com/v1.0
+# or Rackspace UK :
+#   https://lon.auth.api.rackspacecloud.com/v1.0
+auth_url = https://lon.auth.api.rackspacecloud.com/v1.0
+
+# auth version (you may want 1.0 for Rackspace clouds)
+auth_version = 2.0
+
+# vim: ft=dosini
