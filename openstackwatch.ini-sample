@@ -3,7 +3,14 @@
 [general]
 # only show certain projects (don't forget the openstack/ as start)
 projects = openstack/swift, openstack/cinder
+
+# The Json URL where is the gerrit system.
 json_url = https://review.openstack.org/query?q=status:open
+
+# Allow different mode to output to swift, by default 'combined' will
+# combined all rss in one and 'multiple' will upload all the projects
+# in each rss file.
+mode = combined
 
 # username to your swift cluster
 [swift]

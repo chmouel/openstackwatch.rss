@@ -12,10 +12,28 @@ import urllib
 import PyRSS2Gen
 
 PROJECTS = ['openstack/nova', 'openstack/keystone', 'opensack/swift']
-JSON_URL = 'https://review.openstack.org/query?q=status:open'
+JSON_URL = 'https://review.openstack.org/query'
 DEBUG = False
+OUTPUT_MODE = 'multi'
 
 curdir = os.path.dirname(os.path.realpath(sys.argv[0]))
+
+
+class ConfigurationError(Exception):
+    pass
+
+
+def get_config(config, section, option, default=None):
+    if not config.has_section(section):
+        raise ConfigurationError("Invalid configuration, missing section: %s" %
+                                 section)
+    if config.has_option(section, option):
+        return config.get(section, option)
+    elif not default is None:
+        return default
+    else:
+        raise ConfigurationError("Invalid configuration, missing "
+                                 "section/option: %s/%s" % (section, option))
 
 
 def parse_ini(inifile):
@@ -24,17 +42,19 @@ def parse_ini(inifile):
         return
     config = ConfigParser.RawConfigParser(allow_no_value=True)
     config.read(inifile)
+
     if config.has_section('swift'):
         ret['swift'] = dict(config.items('swift'))
-    try:
-        ret['projects'] = config.get('general', 'projects')
-    except(ConfigParser.NoOptionError):
-        ret['projects'] = PROJECTS
-    try:
-        ret['projects'] = config.get('general', 'json_url')
-    except(ConfigParser.NoOptionError):
-        ret['json_url'] = JSON_URL
+
+    ret['projects'] = get_config(config, 'general', 'projects', PROJECTS)
+    if type(ret['projects']) is str:
+        ret['projects'] = ret['projects'].split(',')
+    ret['json_url'] = get_config(config, 'general', 'json_url', JSON_URL)
+    ret['debug'] = get_config(config, 'general', 'debug', DEBUG)
+    ret['output_mode'] = get_config(config, 'general', 'output_mode',
+                                    OUTPUT_MODE)
     return ret
+
 CONFIG = parse_ini("%s/openstackwatch.ini" % curdir)
 
 
@@ -43,9 +63,12 @@ def debug(msg):
         print msg
 
 
-def get_javascript():
-    url = urllib.urlretrieve(CONFIG['json_url'])
-    return open(url[0]).read()
+def get_javascript(project=None):
+    url = "%s?=status:open" % CONFIG['json_url']
+    if project:
+        url += "+project=" + project
+    fp = urllib.urlretrieve(url)
+    return open(fp[0]).read()
 
 
 def parse_javascript(javascript):
@@ -60,7 +83,11 @@ def parse_javascript(javascript):
         yield json_row
 
 
-def upload_rss(xml):
+def upload_rss(xml, output_object):
+    if not 'swift' in CONFIG:
+        print xml
+        return
+
     import swiftclient
     cfg = CONFIG['swift']
     client = swiftclient.Connection(cfg['auth_url'],
@@ -75,12 +102,11 @@ def upload_rss(xml):
         # eventual consistenties
         time.sleep(1)
 
-    client.put_object(cfg['container'], cfg['uploaded_file'],
+    client.put_object(cfg['container'], output_object,
                       cStringIO.StringIO(xml))
 
 
-def main():
-    javascript = get_javascript()
+def generate_rss(javascript):
     rss = PyRSS2Gen.RSS2(
         title="OpenStack watch RSS feed",
         link="http://github.com/chmouel/openstackwatch.rss",
@@ -103,11 +129,18 @@ def main():
                 guid=PyRSS2Gen.Guid(row['id']),
                 pubDate=datetime.datetime.fromtimestamp(row['lastUpdated']),
             ))
-    xml = rss.to_xml()
-    if 'swift' in CONFIG:
-        upload_rss(xml)
-    else:
-        print xml
+    return rss.to_xml()
+
+
+def main():
+    if CONFIG['output_mode'] == "combined":
+        upload_rss(generate_rss(get_javascript()),
+                   CONFIG['swift']['combined_output_object'])
+    elif CONFIG['output_mode'] == "multiple":
+        for project in CONFIG['projects']:
+            upload_rss(
+                generate_rss(get_javascript(project)),
+                "%s.xml" % (os.path.basename(project)))
 
 if __name__ == '__main__':
     main()
