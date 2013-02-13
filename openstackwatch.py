@@ -100,7 +100,7 @@ def main():
                                        row['subject']),
                 author=author,
                 link=row['url'],
-                guid=PyRSS2Gen.Guid(row['url']),
+                guid=PyRSS2Gen.Guid(row['id']),
                 pubDate=datetime.datetime.fromtimestamp(row['lastUpdated']),
             ))
     xml = rss.to_xml()
