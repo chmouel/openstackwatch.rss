@@ -33,4 +33,7 @@ mode = combined
 # auth version (1.0 for Rackspace clouds, 2.0 for keystone backend clusters)
 # auth_version = 1.0
 
+# the object name where to store the combined rss 
+# combined_output_object = openstackwatch.xml
+
 # vim: ft=dosini
