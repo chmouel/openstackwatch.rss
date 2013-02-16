@@ -127,6 +127,7 @@ def generate_rss(javascript):
                 author=author,
                 link=row['url'],
                 guid=PyRSS2Gen.Guid(row['id']),
+                description=row['subject'],
                 pubDate=datetime.datetime.fromtimestamp(row['lastUpdated']),
             ))
     return rss.to_xml()
