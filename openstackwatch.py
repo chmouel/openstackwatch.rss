@@ -14,7 +14,7 @@ import PyRSS2Gen
 PROJECTS = ['openstack/nova', 'openstack/keystone', 'opensack/swift']
 JSON_URL = 'https://review.openstack.org/query'
 DEBUG = False
-OUTPUT_MODE = 'multi'
+OUTPUT_MODE = 'multiple'
 
 curdir = os.path.dirname(os.path.realpath(sys.argv[0]))
 
