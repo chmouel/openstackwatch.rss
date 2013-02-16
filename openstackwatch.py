@@ -106,9 +106,10 @@ def upload_rss(xml, output_object):
                       cStringIO.StringIO(xml))
 
 
-def generate_rss(javascript):
+def generate_rss(javascript, project=""):
+    title = "OpenStack %s watch RSS feed" % (project)
     rss = PyRSS2Gen.RSS2(
-        title="OpenStack watch RSS feed",
+        title=title,
         link="http://github.com/chmouel/openstackwatch.rss",
         description="The latest reviews about Openstack, straight "
                     "from Gerrit.",
@@ -140,7 +141,7 @@ def main():
     elif CONFIG['output_mode'] == "multiple":
         for project in CONFIG['projects']:
             upload_rss(
-                generate_rss(get_javascript(project)),
+                generate_rss(get_javascript(project), project=project),
                 "%s.xml" % (os.path.basename(project)))
 
 if __name__ == '__main__':
