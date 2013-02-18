@@ -47,8 +47,8 @@ def parse_ini(inifile):
         ret['swift'] = dict(config.items('swift'))
 
     ret['projects'] = get_config(config, 'general', 'projects', PROJECTS)
-    if type(ret['projects']) is str:
-        ret['projects'] = ret['projects'].split(',')
+    if type(ret['projects']) is not list:
+        ret['projects'] = [x.strip() for x in ret['projects'].split(',')]
     ret['json_url'] = get_config(config, 'general', 'json_url', JSON_URL)
     ret['debug'] = get_config(config, 'general', 'debug', DEBUG)
     ret['output_mode'] = get_config(config, 'general', 'output_mode',
@@ -64,11 +64,12 @@ def debug(msg):
 
 
 def get_javascript(project=None):
-    url = "%s?=status:open" % CONFIG['json_url']
+    url = "%s?q=status:open" % CONFIG['json_url']
     if project:
-        url += "+project=" + project
+        url += "+project:" + project
     fp = urllib.urlretrieve(url)
-    return open(fp[0]).read()
+    ret = open(fp[0]).read()
+    return ret
 
 
 def parse_javascript(javascript):
